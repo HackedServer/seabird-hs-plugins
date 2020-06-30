@@ -10,6 +10,8 @@ black = "*"
 flake8 = "*"
 grpcio = "*"
 boto3 = "*"
+grpcio-tools = "*"
+requests = "*"
 
 [requires]
 python_version = "3.6"
