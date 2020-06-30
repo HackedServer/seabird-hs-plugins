@@ -1,7 +1,0 @@
-{
-    "python.pythonPath": "/home/hackedserver/.local/share/virtualenvs/seabird-hs-plugins-22TmAIiR/bin/python",
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "python.linting.enabled": true,
-    "python.formatting.provider": "black"
-}
