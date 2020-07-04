@@ -4,10 +4,11 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir pipenv
 
-COPY Pipfile .
+COPY Pipfile Pipfile
+COPY Pipefile.lock Pipfile.locl
 COPY hs-plugins .
 
-RUN pipenv install
+RUN pipenv install --deploy
 
 WORKDIR /app/hs-plugins
 
