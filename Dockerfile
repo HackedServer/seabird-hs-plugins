@@ -12,4 +12,5 @@ RUN pipenv install --deploy
 
 WORKDIR /app/hs-plugins
 
-CMD ["ls", "-alh", "&&", "pwd", "&&", "pipenv", "run", "python3", "."]
+ENTRYPOINT ["pipenv"]
+CMD ["run", "python3", "/app/hs-plugins/"]
