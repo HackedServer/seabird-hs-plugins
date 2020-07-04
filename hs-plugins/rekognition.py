@@ -102,9 +102,15 @@ def limit_image_size(
     img = Image.open(io.BytesIO(original_image))
     aspect = img.size[0] / img.size[1]
 
+    if img.size[0] > 1920:
+        img.resize(1920,  1920 / aspect)
+
+    if img.size[1] > 1080:
+        img.resize(aspect * 1080, 1080)
+
     while True:
         with io.BytesIO() as buffer:
-            img.save(buffer, format="JPEG")
+            img.save(buffer, format="JPEG", optimize=True)
             data = buffer.getvalue()
         filesize = len(data)
         size_deviation = filesize / target_filesize
