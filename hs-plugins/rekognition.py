@@ -2,10 +2,10 @@ import boto3
 import requests
 import re
 import os
+import io
 
+from PIL import Image
 from typing import Tuple, Any
-
-import seabird_pb2
 
 
 def analyze_url(stub, url: str):
@@ -47,7 +47,7 @@ def submit_to_rekognition(imagedata) -> Tuple[bool, str]:
     )
 
     response = client.detect_labels(
-        Image={"Bytes": imagedata,}, MaxLabels=5, MinConfidence=70,
+        Image={"Bytes": imagedata}, MaxLabels=5, MinConfidence=70,
     )
 
     message = []
@@ -58,9 +58,7 @@ def submit_to_rekognition(imagedata) -> Tuple[bool, str]:
     return True, ", ".join(message)
 
 
-def submit_to_rekognition_celebrity(
-    imagedata
-) -> Tuple[bool, str]:
+def submit_to_rekognition_celebrity(imagedata) -> Tuple[bool, str]:
 
     client = boto3.client(
         "rekognition",
@@ -69,7 +67,7 @@ def submit_to_rekognition_celebrity(
         aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
     )
 
-    response = client.recognize_celebrities(Image={"Bytes": imagedata,},)
+    response = client.recognize_celebrities(Image={"Bytes": imagedata},)
 
     message = ""
 
@@ -89,6 +87,35 @@ def download_image(imageurl: str) -> Tuple[bool, Any]:
 
     if r.status_code == requests.codes.ok:
         r.raw.decode_content = True
+        print(f"{len(r.content)} Bytes")
         return True, r.content
     else:
         return False, "Error message one day"
+
+
+def limit_img_size(
+    img_filename, img_target_filename, target_filesize, tolerance=5
+):
+    img = img_orig = Image.open(img_filename)
+    aspect = img.size[0] / img.size[1]
+
+    while True:
+        with io.BytesIO() as buffer:
+            img.save(buffer, format="JPEG")
+            data = buffer.getvalue()
+        filesize = len(data)
+        size_deviation = filesize / target_filesize
+        print("size: {}; factor: {:.3f}".format(filesize, size_deviation))
+
+        if size_deviation <= (100 + tolerance) / 100:
+            # filesize fits
+            with open(img_target_filename, "wb") as f:
+                f.write(data)
+            break
+        else:
+            # filesize not good enough => adapt width and height
+            # use sqrt of deviation since applied both in width and height
+            new_width = img.size[0] / size_deviation ** 0.5
+            new_height = new_width / aspect
+            # resize from img_orig to not lose quality
+            img = img_orig.resize((int(new_width), int(new_height)))

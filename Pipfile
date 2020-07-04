@@ -13,6 +13,7 @@ boto3 = "*"
 grpcio-tools = "*"
 requests = "*"
 urlextract = "*"
+Pillow = "*"
 
 [requires]
 python_version = "3.6"
