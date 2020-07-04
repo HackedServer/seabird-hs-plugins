@@ -9,14 +9,17 @@ spec:
   selector:
     matchLabels:
       app: seabird-hs-plugins
+      jenkins-deploy: ${BUILD_TAG}
   template:
     metadata:
       labels:
         app: seabird-hs-plugins
+        jenkins-deploy: ${BUILD_TAG}
     spec:
       containers:
         - name: seabird-hs-plugins
           image: 550694123460.dkr.ecr.us-east-1.amazonaws.com/seabird-hs-plugins
+          imagePullPolicy: Always
           env:
             - name: AWS_ACCESS_KEY
               valueFrom:
