@@ -87,16 +87,19 @@ def download_image(imageurl: str) -> Tuple[bool, Any]:
 
     if r.status_code == requests.codes.ok:
         r.raw.decode_content = True
-        print(f"{len(r.content)} Bytes")
-        return True, r.content
+        if len(r.content) > 5000000:
+            shrunk_image = limit_image_size(r.content)
+            return True, shrunk_image
+        else:
+            return True, r.content
     else:
         return False, "Error message one day"
 
 
-def limit_img_size(
-    img_filename, img_target_filename, target_filesize, tolerance=5
-):
-    img = img_orig = Image.open(img_filename)
+def limit_image_size(
+    original_image: bytes, target_filesize: int = 5000000
+) -> bytes:
+    img = Image.open(io.BytesIO(original_image))
     aspect = img.size[0] / img.size[1]
 
     while True:
@@ -105,17 +108,10 @@ def limit_img_size(
             data = buffer.getvalue()
         filesize = len(data)
         size_deviation = filesize / target_filesize
-        print("size: {}; factor: {:.3f}".format(filesize, size_deviation))
-
-        if size_deviation <= (100 + tolerance) / 100:
-            # filesize fits
-            with open(img_target_filename, "wb") as f:
-                f.write(data)
-            break
+        print(size_deviation)
+        if size_deviation <= 1:
+            return data
         else:
-            # filesize not good enough => adapt width and height
-            # use sqrt of deviation since applied both in width and height
             new_width = img.size[0] / size_deviation ** 0.5
             new_height = new_width / aspect
-            # resize from img_orig to not lose quality
-            img = img_orig.resize((int(new_width), int(new_height)))
+            img = img.resize((int(new_width), int(new_height)))
