@@ -7,7 +7,7 @@ RUN pip install --no-cache-dir pipenv
 COPY Pipfile .
 COPY hs-plugins .
 
-RUN pipfile install
+RUN pipenv install
 
 WORKDIR /app/hs-plugins
 
