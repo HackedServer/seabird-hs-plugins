@@ -23,8 +23,8 @@ spec:
                 secretKeyRef:
                   name: seabird-hs-plugins-config
                   key: AWS_ACCESS_KEY
-            - name: 
-              valueFrom: AWS_SECRET_KEY
+            - name: AWS_SECRET_KEY
+              valueFrom: 
                 secretKeyRef:
                   name: seabird-hs-plugins-config
                   key: AWS_SECRET_KEY
