@@ -2,48 +2,47 @@ import boto3
 import requests
 import re
 
-from configparser import ConfigParser
 from typing import Tuple, Any
 
 import seabird_pb2
 
 
-def analyze_url(stub, config: ConfigParser, url: str):
+def analyze_url(stub, url: str):
 
     r = requests.head(url, allow_redirects=True, timeout=1)
     if re.search(
         "image/(jpeg|png)", r.headers["Content-Type"], flags=re.IGNORECASE
     ):
-        return analyze_image(stub, config, url)
+        return analyze_image(stub, url)
 
 
-def analyze_image(stub, config: ConfigParser, imageurl: str):
-
-    ok, result = download_image(imageurl)
-    if ok is not True:
-        return ok, result
-    ok, result = submit_to_rekognition(config, result)
-
-    return result
-
-
-def analyze_celebrity(stub, config: ConfigParser, imageurl: str):
+def analyze_image(stub, imageurl: str):
 
     ok, result = download_image(imageurl)
     if ok is not True:
         return ok, result
-    ok, result = submit_to_rekognition_celebrity(config, result)
+    ok, result = submit_to_rekognition(result)
 
     return result
 
 
-def submit_to_rekognition(config: ConfigParser, imagedata) -> Tuple[bool, str]:
+def analyze_celebrity(stub, imageurl: str):
+
+    ok, result = download_image(imageurl)
+    if ok is not True:
+        return ok, result
+    ok, result = submit_to_rekognition_celebrity(result)
+
+    return result
+
+
+def submit_to_rekognition(imagedata) -> Tuple[bool, str]:
 
     client = boto3.client(
         "rekognition",
-        region_name=config["aws"]["region"],
-        aws_access_key_id=config["aws"]["access_key"],
-        aws_secret_access_key=config["aws"]["secret_key"],
+        region_name=os.getenv("AWS_REGION"),
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
     )
 
     response = client.detect_labels(
@@ -59,14 +58,14 @@ def submit_to_rekognition(config: ConfigParser, imagedata) -> Tuple[bool, str]:
 
 
 def submit_to_rekognition_celebrity(
-    config: ConfigParser, imagedata
+    imagedata
 ) -> Tuple[bool, str]:
 
     client = boto3.client(
         "rekognition",
-        region_name=config["aws"]["region"],
-        aws_access_key_id=config["aws"]["access_key"],
-        aws_secret_access_key=config["aws"]["secret_key"],
+        region_name=os.getenv("AWS_REGION"),
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
     )
 
     response = client.recognize_celebrities(Image={"Bytes": imagedata,},)

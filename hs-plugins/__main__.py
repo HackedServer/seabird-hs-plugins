@@ -1,6 +1,6 @@
 import logging
 import grpc
-import configparser
+import os
 
 
 from urllib.parse import urlparse
@@ -12,16 +12,8 @@ import seabird_pb2
 import seabird_pb2_grpc
 
 
-def get_config(path: str):
-    config = configparser.ConfigParser()
-    config.read(path)
-    return config
-
-
 def handle_image(stub, command):
-    config = get_config("config.ini")
-
-    message = analyze_image(stub, config, command.arg)
+    message = analyze_image(stub, command.arg)
 
     stub.SendMessage.with_call(
         seabird_pb2.SendMessageRequest(
@@ -32,9 +24,7 @@ def handle_image(stub, command):
 
 
 def handle_celebrity(stub, command):
-    config = get_config("config.ini")
-
-    message = analyze_celebrity(stub, config, command.arg)
+    message = analyze_celebrity(stub, command.arg)
 
     stub.SendMessage.with_call(
         seabird_pb2.SendMessageRequest(
@@ -45,14 +35,12 @@ def handle_celebrity(stub, command):
 
 
 def handle_url(stub, message):
-    config = get_config("config.ini")
-
     extractor = URLExtract()
 
     urls = extractor.find_urls(message.text, only_unique=True)
 
     for url in urls:
-        response = analyze_url(stub, config, url)
+        response = analyze_url(stub, url)
         if response:
             o = urlparse(url)
 
@@ -65,21 +53,15 @@ def handle_url(stub, message):
 
 
 def main():
-
-    config = get_config("config.ini")
-
-    print(config["DEFAULT"]["seabird_grpc_hostport"])
-    print(config["DEFAULT"]["seabird_grpc_token"])
-
     with grpc.secure_channel(
-        config["DEFAULT"]["seabird_grpc_hostport"],
+        os.getenv("SEABIRD_HOST_PORT"),
         grpc.ssl_channel_credentials(),
     ) as channel:
         channel = grpc.intercept_channel(
             channel,
             add_header(
                 "authorization",
-                f'Bearer {config["DEFAULT"]["seabird_grpc_token"]}',
+                f'Bearer {os.getenv("SEABIRD_TOKEN")}',
             ),
         )
 

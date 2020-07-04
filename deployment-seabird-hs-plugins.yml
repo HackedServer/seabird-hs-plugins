@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seabird-hs-plugins
+  labels:
+    app: seabird-hs-plugins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seabird-hs-plugins
+  template:
+    metadata:
+      labels:
+        app: seabird-hs-plugins
+    spec:
+      containers:
+        - name: seabird-hs-plugins
+          image: 550694123460.dkr.ecr.us-east-1.amazonaws.com/seabird-hs-plugins
+          env:
+            - name: AWS_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: seabird-hs-plugins-config
+                  key: AWS_ACCESS_KEY
+            - name: 
+              valueFrom: AWS_SECRET_KEY
+                secretKeyRef:
+                  name: seabird-hs-plugins-config
+                  key: AWS_SECRET_KEY
+            - name: SEABIRD_HOST_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: seabird-hs-plugins-config
+                  key: SEABIRD_HOST_PORT
+            - name: SEABIRD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: seabird-hs-plugins-config
+                  key: SEABIRD_TOKEN
+            - name: AWS_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: seabird-hs-plugins-config
+                  key: AWS_REGION
