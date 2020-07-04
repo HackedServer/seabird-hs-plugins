@@ -6,7 +6,7 @@ RUN pip install --no-cache-dir pipenv
 
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
-ADD hs-plugins ./
+ADD hs-plugins /app/
 
 RUN pipenv install --deploy
 
