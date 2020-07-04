@@ -2,7 +2,11 @@ import logging
 import grpc
 import configparser
 
-from rekognition import analyze_image, analyze_celebrity
+
+from urllib.parse import urlparse
+from urlextract import URLExtract
+
+from rekognition import analyze_image, analyze_celebrity, analyze_url
 from interceptor import add_header
 import seabird_pb2
 import seabird_pb2_grpc
@@ -26,6 +30,7 @@ def handle_image(stub, command):
         )
     )
 
+
 def handle_celebrity(stub, command):
     config = get_config("config.ini")
 
@@ -37,6 +42,27 @@ def handle_celebrity(stub, command):
             text=f"{command.source.user.display_name}: {message}",
         )
     )
+
+
+def handle_url(stub, message):
+    config = get_config("config.ini")
+
+    extractor = URLExtract()
+
+    urls = extractor.find_urls(message.text, only_unique=True)
+
+    for url in urls:
+        response = analyze_url(stub, config, url)
+        if response:
+            o = urlparse(url)
+
+            stub.SendMessage.with_call(
+                seabird_pb2.SendMessageRequest(
+                    channel_id=message.source.channel_id,
+                    text=f"{o.scheme}://{o.netloc}/: {response}",
+                )
+            )
+
 
 def main():
 
@@ -76,8 +102,12 @@ def main():
             )
         ):
             command = event.command
-            if not command:
+            message = event.message
+
+            if not command or not message:
                 continue
+
+            extractor = URLExtract()
 
             if command.command == "inspect_image":
                 if command.arg:
@@ -86,9 +116,10 @@ def main():
                     stub.SendMessage.with_call(
                         seabird_pb2.SendMessageRequest(
                             channel_id=command.source.channel_id,
-                            text=f"{command.source.user.display_name}: HS test",
+                            text=f"{command.source.user.display_name}: Missing URL",
                         )
                     )
+                continue
             elif command.command == "inspect_celebrity":
                 if command.arg:
                     handle_celebrity(stub, command)
@@ -96,9 +127,12 @@ def main():
                     stub.SendMessage.with_call(
                         seabird_pb2.SendMessageRequest(
                             channel_id=command.source.channel_id,
-                            text=f"{command.source.user.display_name}: HS test",
+                            text=f"{command.source.user.display_name}: Missing URL",
                         )
                     )
+                continue
+            elif extractor.has_urls(message.text):
+                handle_url(stub, message)
             else:
                 continue
 

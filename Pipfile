@@ -12,6 +12,7 @@ grpcio = "*"
 boto3 = "*"
 grpcio-tools = "*"
 requests = "*"
+urlextract = "*"
 
 [requires]
 python_version = "3.6"
