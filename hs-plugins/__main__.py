@@ -25,7 +25,6 @@ def handle_image(stub, command):
     LOG.debug("handle_image calling analyze_image.")
     message = analyze_image(stub, command.arg)
 
-
     if message:
         stub.SendMessage.with_call(
             seabird_pb2.SendMessageRequest(
@@ -58,7 +57,7 @@ def handle_url(stub, message):
         if response:
             LOG.debug("URL processing successful for %s", url)
             o = urlparse(url)
-
+            LOG.info(o)
             stub.SendMessage.with_call(
                 seabird_pb2.SendMessageRequest(
                     channel_id=message.source.channel_id,
@@ -170,8 +169,7 @@ def main():
                 continue
             elif extractor.has_urls(message.text):
                 LOG.info(
-                    "Detected link from %s",
-                    message.source.user.display_name,
+                    "Detected link from %s", message.source.user.display_name,
                 )
                 handle_url(stub, message)
             else:

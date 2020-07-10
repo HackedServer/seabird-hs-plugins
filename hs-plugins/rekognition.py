@@ -10,9 +10,23 @@ from typing import Tuple, Any
 
 LOG = logging.getLogger("hs-plugins")
 
+
 def check_header(url: str) -> bool:
 
-    r = requests.head(url, allow_redirects=True, timeout=1)
+    try:
+        r = requests.head(url, allow_redirects=True, timeout=1)
+    except requests.exceptions.MissingSchema:
+        try:
+            r = requests.head(
+                f"https://{url}", allow_redirects=True, timeout=1
+            )
+        except:
+            LOG.error("Error https fetching %s", url)
+            return False
+    except:
+        LOG.error("Error fetching %s", url)
+        return False
+
     if re.search(
         "image/(jpeg|png)", r.headers["Content-Type"], flags=re.IGNORECASE
     ):
@@ -22,10 +36,21 @@ def check_header(url: str) -> bool:
         LOG.info("Image content not detected for: %s", url)
         return False
 
+
 def analyze_url(stub, url: str):
 
-    if check_header(url):
-        return analyze_image(stub, url)
+    if not check_header(url):
+        return
+
+    ok, result = download_image(url)
+    if ok is not True:
+        LOG.info("Failed to download image for: %s", url)
+        return
+
+    ok, result = submit_to_rekognition(result)
+
+    if ok is True:
+        return result
 
 
 def analyze_image(stub, imageurl: str):
@@ -100,7 +125,13 @@ def submit_to_rekognition_celebrity(imagedata) -> Tuple[bool, str]:
 def download_image(imageurl: str) -> Tuple[bool, Any]:
     """Downloads the image url and returns a success/fail bool and message or image data"""
 
-    r = requests.get(imageurl, stream=True, timeout=2)
+    try:
+        r = requests.get(imageurl, stream=True, timeout=2)
+    except requests.exceptions.MissingSchema:
+        try:
+            r = requests.get(f"https://{imageurl}", stream=True, timeout=2)
+        except:
+            pass
 
     if r.status_code == requests.codes.ok:
         r.raw.decode_content = True
