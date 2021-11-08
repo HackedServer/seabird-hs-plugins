@@ -17,9 +17,7 @@ def check_header(url: str) -> bool:
         r = requests.head(url, allow_redirects=True, timeout=1)
     except requests.exceptions.MissingSchema:
         try:
-            r = requests.head(
-                f"https://{url}", allow_redirects=True, timeout=1
-            )
+            r = requests.head(f"https://{url}", allow_redirects=True, timeout=1)
         except:
             LOG.error("Error https fetching %s", url)
             return False
@@ -27,9 +25,7 @@ def check_header(url: str) -> bool:
         LOG.error("Error fetching %s", url)
         return False
 
-    if re.search(
-        "image/(jpeg|png)", r.headers["Content-Type"], flags=re.IGNORECASE
-    ):
+    if re.search("image/(jpeg|png)", r.headers["Content-Type"], flags=re.IGNORECASE):
         LOG.info("Image content detected for: %s", url)
         return True
     else:
@@ -53,7 +49,7 @@ def analyze_url(stub, url: str):
         return result
 
 
-def analyze_image(stub, imageurl: str):
+def analyze_image(imageurl: str):
 
     if not check_header(imageurl):
         return "No image detected."
@@ -67,7 +63,7 @@ def analyze_image(stub, imageurl: str):
     return result
 
 
-def analyze_celebrity(stub, imageurl: str):
+def analyze_celebrity(imageurl: str):
 
     if not check_header(imageurl):
         return "Image not detected."
@@ -89,7 +85,9 @@ def submit_to_rekognition(imagedata) -> Tuple[bool, str]:
     )
 
     response = client.detect_labels(
-        Image={"Bytes": imagedata}, MaxLabels=5, MinConfidence=70,
+        Image={"Bytes": imagedata},
+        MaxLabels=5,
+        MinConfidence=70,
     )
 
     message = []
@@ -109,7 +107,9 @@ def submit_to_rekognition_celebrity(imagedata) -> Tuple[bool, str]:
         aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
     )
 
-    response = client.recognize_celebrities(Image={"Bytes": imagedata},)
+    response = client.recognize_celebrities(
+        Image={"Bytes": imagedata},
+    )
 
     message = ""
 
@@ -144,9 +144,7 @@ def download_image(imageurl: str) -> Tuple[bool, Any]:
         return False, "Error message one day"
 
 
-def limit_image_size(
-    original_image: bytes, target_filesize: int = 5_000_000
-) -> bytes:
+def limit_image_size(original_image: bytes, target_filesize: int = 5_000_000) -> bytes:
     img = Image.open(io.BytesIO(original_image))
     aspect = img.size[0] / img.size[1]
 

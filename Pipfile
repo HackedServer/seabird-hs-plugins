@@ -5,18 +5,17 @@ verify_ssl = true
 
 [dev-packages]
 black = "*"
+flake8 = "*"
 
 [packages]
-flake8 = "*"
-grpcio = "*"
 boto3 = "*"
-grpcio-tools = "*"
 requests = "*"
 urlextract = "*"
 Pillow = "*"
+python-seabird = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.9"
 
 [pipenv]
 allow_prereleases = true
