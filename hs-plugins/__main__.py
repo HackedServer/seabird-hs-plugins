@@ -18,12 +18,6 @@ LOG.addHandler(log_handler)
 LOG.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
 
-DEV_CREDS = {
-    "token": "LeeG9Gohc9Naejah0eifa7ohGe3ohb5haeshi1eer5phohx6eis5EZoongae",
-    "url": "https://seabird-core-dev.elwert.cloud/",
-}
-
-
 async def main():
     LOG.info("Started and opening connection.")
     extractor = URLExtract(extract_localhost=False)
